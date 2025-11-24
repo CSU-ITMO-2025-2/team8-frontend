@@ -3,6 +3,7 @@ import { playwright } from '@vitest/browser-playwright';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 
+
 export default defineConfig({
     server:{
         host: '0.0.0.0',
