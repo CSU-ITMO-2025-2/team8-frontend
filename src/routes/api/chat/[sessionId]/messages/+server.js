@@ -14,7 +14,7 @@ export async function POST({ params, request, cookies }) {
     };
 
     try {
-        const res = await fetch(`${API_ROUTE}:8080/chat/sessions/${params.sessionId}/messages`, {
+        const res = await fetch(`http://${API_ROUTE}:8080/chat/sessions/${params.sessionId}/messages`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -7,7 +7,7 @@ export async function GET({ params, cookies }) {
     if (!token) return json({ detail: 'Не авторизован' }, { status: 401 });
 
     try {
-        const res = await fetch(`${API_ROUTE}:8080/chat/sessions/${params.sessionId}`, {
+        const res = await fetch(`http://${API_ROUTE}:8080/chat/sessions/${params.sessionId}`, {
             headers: { 'Authorization': `Basic ${token}` }
         });
 
