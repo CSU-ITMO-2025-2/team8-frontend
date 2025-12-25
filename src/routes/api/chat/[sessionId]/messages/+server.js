@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-
+import {API_ROUTE} from '$env/static/private';
 /** @type {import('./$types').RequestHandler} */
 export async function POST({ params, request, cookies }) {
     const token = cookies.get('auth_token');
@@ -14,7 +14,7 @@ export async function POST({ params, request, cookies }) {
     };
 
     try {
-        const res = await fetch(`http://127.0.0.1:8080/chat/sessions/${params.sessionId}/messages`, {
+        const res = await fetch(`${API_ROUTE}:8080/chat/sessions/${params.sessionId}/messages`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

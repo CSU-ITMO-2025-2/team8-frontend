@@ -6,11 +6,11 @@
     import ChatBubble from '$lib/components/ChatBubble.svelte';
     import LoaderGif from "$lib/components/LoaderGif.svelte";
 
-    let chats = [];
-    let currentChat = null;
-    let messages = [];
-    let input = '';
-    let loading = false;
+    let chats = $state([]);
+    let currentChat = $state(null);
+    let messages = $state([]);
+    let input = $state('');
+    let loading = $state(false);
 
     async function fetchChats() {
         const res = await fetch('/api/chat/sessions');
@@ -26,7 +26,7 @@
         const res = await fetch('/api/chat/sessions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: `Новый чат ${new Date().toLocaleTimeString()}` })
+            body: JSON.stringify({ title: `Новый чат ${new Date()}` })
         });
         if (res.ok) {
             const newChat = await res.json();
@@ -54,6 +54,7 @@
 
         const text = input;
         input = '';
+
         messages = [...messages, { role: 'user', content: text }];
 
         const res = await fetch(`/api/chat/${currentChat.id}/messages`, {
@@ -61,12 +62,68 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ content: text })
         });
+        if (!res.ok) return;
 
-        if (res.ok) {
-            // const answer = await res.json();
-            // messages = [...messages, answer];
+        const msg = JSON.parse(await res.text());
+        const requestId = msg?.meta?.request_id;
+        if (!requestId) return;
+
+        // пустое сообщение ассистента (ОДИН РАЗ)
+        messages = [...messages, { role: 'assistant', content: '' }];
+        const aiIndex = messages.length - 1;
+
+        // SSE
+        const sse = await fetch(
+            `/api/chat/${requestId}/stream`,
+            { headers: { 'Accept': 'text/event-stream' } }
+        );
+        if (!sse.body) return;
+
+        const reader = sse.body
+            .pipeThrough(new TextDecoderStream())
+            .getReader();
+
+        let buffer = '';
+
+        while (true) {
+
+            const { value, done } = await reader.read();
+            console.log(value)
+            console.log(done)
+            if (done) break;
+
+            buffer += value;
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+                const l = line.trim();
+                if (!(l.startsWith('data=') || l.startsWith('data:'))) continue;
+
+                let raw = l.slice(5).trim();              // после data=
+                raw = raw.replace(/^"+|"+$/g, '');        // убрать внешние "
+                raw = raw.replace(/\\n/g, '\n');          // переносы
+                raw = raw.replace(/'/g, '"');             // python dict → json
+
+                let payload;
+                try { payload = JSON.parse(raw); }
+                catch { continue; }
+
+                if (payload.type === 'chunk' && payload.delta) {
+                    messages[aiIndex].content += payload.delta;
+                    messages = [...messages];
+                }
+
+                if (payload.type === 'final' && payload.content) {
+                    messages[aiIndex].content = payload.content
+                }
+
+                if (payload.type === 'done') return;
+            }
         }
     }
+
+
 
     onMount(() => {
         fetchChats();
@@ -90,7 +147,7 @@
 
         {#each chats as chat}
             <div
-                    class="p-2 cursor-pointer rounded-xl hover:bg-green-200 transition {chat.id === currentChat?.id ? 'bg-green-300' : ''}"
+                    class="p-2 cursor-pointer rounded-xl hover:bg-green-200 transition min-w-xs {chat.id === currentChat?.id ? 'bg-green-300' : ''}"
                     on:click={() => selectChat(chat.id)}>
                 {chat.title || `Чат ${chat.id}`}
             </div>
