@@ -1,6 +1,8 @@
 name: build-frontend-image
 
 on:
+  workflow_dispatch:
+
   push:
     branches: [ "main" ]
 
@@ -50,3 +52,4 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ steps.setowner.outputs.owner_lc }}/${{ env.IMAGE_NAME }}:${{ steps.settag.outputs.image_tag }}
+            ghcr.io/${{ steps.setowner.outputs.owner_lc }}/${{ env.IMAGE_NAME }}:latest
