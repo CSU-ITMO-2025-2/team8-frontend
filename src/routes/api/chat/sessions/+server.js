@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import {API_ROUTE} from '$env/static/private';
+import {env} from '$env/dynamic/private';
 
 /** @type {import('./$types').RequestHandler} */
 export async function GET({ cookies }) {
@@ -7,7 +7,7 @@ export async function GET({ cookies }) {
     if (!token) return json({ detail: 'Не авторизован' }, { status: 401 });
 
     try {
-        const res = await fetch(`http://${API_ROUTE}:8080/chat/sessions`, {
+        const res = await fetch(`http://${env.API_ROUTE}:8080/chat/sessions`, {
             headers: { 'Authorization': `Basic ${token}` }
         });
 
@@ -38,7 +38,7 @@ export async function POST({ request, cookies }) {
     };
 
     try {
-        const res = await fetch(`http://${API_ROUTE}:8080/chat/sessions`, {
+        const res = await fetch(`http://${env.API_ROUTE}:8080/chat/sessions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

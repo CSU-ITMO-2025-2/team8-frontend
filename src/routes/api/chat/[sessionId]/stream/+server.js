@@ -1,4 +1,4 @@
-import {API_ROUTE} from '$env/static/private';
+import {env} from '$env/dynamic/private';
 
 export async function GET({ params, cookies }) {
     const token = cookies.get('auth_token');
@@ -9,7 +9,7 @@ export async function GET({ params, cookies }) {
     const request_id  = params.sessionId ;
 
     const upstream = await fetch(
-        `http://${API_ROUTE}:8080/chat/stream/${request_id }`,
+        `http://${env.API_ROUTE}:8080/chat/stream/${request_id }`,
         {
             headers: {
                 'Authorization': `Basic ${token}`,

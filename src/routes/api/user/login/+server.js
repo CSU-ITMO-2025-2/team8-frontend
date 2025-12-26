@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import {API_ROUTE} from "$env/static/private";
+import {env} from "$env/dynamic/private";
 
 export async function POST({ request, cookies }) {
     const { login, password } = await request.json();
@@ -8,7 +8,7 @@ export async function POST({ request, cookies }) {
     const token = btoa(`${login}:${password}`);
 
     // Проверка логина через API
-    const res = await fetch(`http://${API_ROUTE}:8080/chat/sessions?limit=1`, {
+    const res = await fetch(`http://${env.API_ROUTE}:8080/chat/sessions?limit=1`, {
         headers: { 'Authorization': `Basic ${token}` }
     });
 
