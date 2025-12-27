@@ -4,6 +4,6 @@ WORKDIR /app
 
 COPY . ./
 RUN npm ci
-
+RUN npm run build
 EXPOSE 4173
-CMD npm run build && npm run preview
+CMD npm run preview
