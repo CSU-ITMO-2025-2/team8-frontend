@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 
 /** @type {import('./$types').RequestHandler} */
-export async function GET({ cookies }) {
+export async function GET({ cookies, fetch }) {
     const token = cookies.get('auth_token');
     if (!token) return json({ detail: 'Не авторизован' }, { status: 401 });
 
@@ -21,7 +21,7 @@ export async function GET({ cookies }) {
         return json({ detail: 'Ошибка сервера' }, { status: 500 });
     }
 }
-export async function POST({ request, cookies }) {
+export async function POST({ request, cookies, fetch }) {
     const token = cookies.get('auth_token');
     if (!token) return json({ detail: 'Не авторизован' }, { status: 401 });
 
