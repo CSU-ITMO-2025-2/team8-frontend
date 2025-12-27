@@ -13,7 +13,7 @@
     let loading = $state(false);
 
     async function fetchChats() {
-        const res = await fetch('/api/chat/sessions');
+        const res = await fetch('/api/chat/sessions', { credentials: 'include' });
         if (res.ok) {
             chats = await res.json();
             if (chats.length && !currentChat) selectChat(chats[0].id);
