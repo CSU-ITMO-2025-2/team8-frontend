@@ -12,15 +12,31 @@
     let input = $state('');
     let loading = $state(false);
 
-    async function fetchChats() {
-        const res = await fetch('/api/chat/sessions', { credentials: 'include' });
-        if (res.ok) {
-            chats = await res.json();
-            if (chats.length && !currentChat) selectChat(chats[0].id);
-        } else {
-            chats = [];
+    async function getChat() {
+        const ok = await fetchChatsWithRetry(4, 300);
+        return ok;
+    }
+
+    async function fetchChatsWithRetry(retries = 2, delayMs = 300) {
+        for (let attempt = 0; attempt <= retries; attempt++) {
+            const res = await fetch('/api/chat/sessions', { credentials: 'include' });
+
+            if (res.ok) {
+                chats = await res.json();
+                if (chats.length && !currentChat) selectChat(chats[0].id);
+                return true;
+            }
+
+            // если не последняя попытка — ждём и пробуем снова
+            if (attempt < retries) {
+                await new Promise((r) => setTimeout(r, delayMs));
+            } else {
+                chats = [];
+                return false;
+            }
         }
     }
+
     function chatTitle() {
         const d = new Date();
         const pad = (n) => String(n).padStart(2, '0');
@@ -131,7 +147,7 @@
 
 
     onMount(() => {
-        fetchChats();
+        getChat();
     });
 </script>
 
