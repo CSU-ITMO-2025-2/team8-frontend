@@ -9,7 +9,7 @@ export async function GET({ params, cookies }) {
     const request_id  = params.sessionId ;
 
     const upstream = await fetch(
-        `http://${env.API_ROUTE}:8080/chat/stream/${request_id }`,
+        `http://backend:8080/chat/stream/${request_id }`,
         {
             headers: {
                 'Authorization': `Basic ${token}`,
