@@ -7,7 +7,7 @@ import { sveltekit } from '@sveltejs/kit/vite';
 export default defineConfig({
     server:{
         host: '0.0.0.0',
-        allowedHosts: ["team8.kubepractice.ru"],
+        allowedHosts: ["team8.kubepractice.ru", 'backend'],
         port:5173
     },
 
