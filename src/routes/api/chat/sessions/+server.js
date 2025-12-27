@@ -1,86 +1,31 @@
 import { json } from '@sveltejs/kit';
 
-function makeDebugId() {
-    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-async function safeText(res) {
-    try {
-        return await res.text();
-    } catch {
-        return '';
-    }
-}
-
-export async function GET({ cookies, fetch }) {
-    const debugId = makeDebugId();
+/** @type {import('./$types').RequestHandler} */
+export async function GET({ cookies }) {
     const token = cookies.get('auth_token');
-
-    if (!token) {
-        console.log('[sessions][GET]', debugId, 'NO_COOKIE auth_token');
-        return json(
-            { debug: true, debugId, where: 'sveltekit', reason: 'NO_AUTH_TOKEN_COOKIE' },
-            { status: 401 }
-        );
-    }
+    if (!token) return json({ detail: 'Не авторизован' }, { status: 401 });
 
     try {
-        const res = await fetch('http://backend/chat/sessions', {
-            headers: { Authorization: `Basic ${token}` }
+        const res = await fetch(`http://backend/chat/sessions`, {
+            headers: { 'Authorization': `Basic ${token}` }
         });
 
-        const text = await safeText(res);
-
         if (!res.ok) {
-            console.log('[sessions][GET]', debugId, 'BACKEND_ERR', res.status, text.slice(0, 200));
-            return json(
-                {
-                    debug: true,
-                    debugId,
-                    where: 'backend',
-                    status: res.status,
-                    body: text.slice(0, 300)
-                },
-                { status: res.status }
-            );
+            const err = await res.json().catch(() => ({}));
+            return json(err, { status: res.status });
         }
 
-        let data;
-        try { data = text ? JSON.parse(text) : {}; }
-        catch { data = { raw: text }; }
-
-        console.log('[sessions][GET]', debugId, 'OK');
-        return json({ debug: true, debugId, where: 'ok', data });
+        const data = await res.json();
+        return json(data);
     } catch (err) {
-        console.log('[sessions][GET]', debugId, 'FETCH_ERROR', String(err));
-        return json(
-            { debug: true, debugId, where: 'fetch_error', error: String(err) },
-            { status: 500 }
-        );
+        return json({ detail: 'Ошибка сервера' }, { status: 500 });
     }
 }
-
-export async function POST({ request, cookies, fetch }) {
-    const debugId = makeDebugId();
+export async function POST({ request, cookies }) {
     const token = cookies.get('auth_token');
+    if (!token) return json({ detail: 'Не авторизован' }, { status: 401 });
 
-    if (!token) {
-        console.log('[sessions][POST]', debugId, 'NO_COOKIE auth_token');
-        return json(
-            { debug: true, debugId, where: 'sveltekit', reason: 'NO_AUTH_TOKEN_COOKIE' },
-            { status: 401 }
-        );
-    }
-
-    let body;
-    try {
-        body = await request.json();
-    } catch {
-        return json(
-            { debug: true, debugId, where: 'sveltekit', reason: 'INVALID_JSON' },
-            { status: 400 }
-        );
-    }
+    const body = await request.json();
 
     const payload = {
         title: body.title || `Новый чат ${new Date().toLocaleTimeString()}`,
@@ -92,42 +37,18 @@ export async function POST({ request, cookies, fetch }) {
     };
 
     try {
-        const res = await fetch('http://backend/chat/sessions', {
+        const res = await fetch(`http://backend/chat/sessions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Basic ${token}`
+                'Authorization': `Basic ${token}`
             },
             body: JSON.stringify(payload)
         });
 
-        const text = await safeText(res);
-
-        if (!res.ok) {
-            console.log('[sessions][POST]', debugId, 'BACKEND_ERR', res.status, text.slice(0, 200));
-            return json(
-                {
-                    debug: true,
-                    debugId,
-                    where: 'backend',
-                    status: res.status,
-                    body: text.slice(0, 300)
-                },
-                { status: res.status }
-            );
-        }
-
-        let data;
-        try { data = text ? JSON.parse(text) : {}; }
-        catch { data = { raw: text }; }
-
-        console.log('[sessions][POST]', debugId, 'OK');
-        return json({ debug: true, debugId, where: 'ok', data });
+        const data = await res.json();
+        return json(data);
     } catch (err) {
-        console.log('[sessions][POST]', debugId, 'FETCH_ERROR', String(err));
-        return json(
-            { debug: true, debugId, where: 'fetch_error', error: String(err) },
-            { status: 500 }
-        );
+        return json({ detail: 'Ошибка сервера' }, { status: 500 });
     }
 }

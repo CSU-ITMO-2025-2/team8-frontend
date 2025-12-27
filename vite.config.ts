@@ -10,6 +10,9 @@ export default defineConfig({
         allowedHosts: ["team8.kubepractice.ru"],
         port:5173
     },
+    preview: {
+        allowedHosts: ['backend', '.svc', '.cluster.local']
+    },
 
     plugins: [tailwindcss(), sveltekit()],
 	test: {
