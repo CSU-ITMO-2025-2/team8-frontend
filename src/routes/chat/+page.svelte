@@ -21,12 +21,17 @@
             chats = [];
         }
     }
+    function chatTitle() {
+        const d = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
 
+        return `Чат-${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}-${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
     async function createChat() {
         const res = await fetch('/api/chat/sessions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: `Новый чат ${new Date()}` })
+            body: JSON.stringify({ title: chatTitle() })
         });
         if (res.ok) {
             const newChat = await res.json();
@@ -138,37 +143,60 @@
     <LoaderGif size={500} />
 {/if}
 
-<div class="flex min-h-screen p-4 gap-4">
-    <div class="w-1/12 bg-white/80 p-4 rounded-2xl shadow space-y-4">
-        <button class="w-full py-2 bg-green-400 text-white rounded-xl hover:bg-green-500 transition"
-                on:click={createChat}>
+<div class="flex h-screen p-4 gap-4">
+    <aside class="w-72 md:w-80 shrink-0 bg-white/80 p-3 rounded-2xl shadow flex flex-col">
+        <button
+                class="w-full py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"
+                on:click={createChat}
+        >
             + Новый чат
         </button>
 
-        {#each chats as chat}
-            <div
-                    class="p-2 cursor-pointer rounded-xl hover:bg-green-200 transition min-w-xs {chat.id === currentChat?.id ? 'bg-green-300' : ''}"
-                    on:click={() => selectChat(chat.id)}>
-                {chat.title || `Чат ${chat.id}`}
-            </div>
-        {/each}
-    </div>
+        <div class="mt-3 flex-1 overflow-y-auto space-y-2 pr-1">
+            {#each chats as chat}
+                <button
+                        class="
+            w-full text-left p-2 rounded-xl transition
+            hover:bg-green-100
+            {chat.id === currentChat?.id ? 'bg-green-200 ring-1 ring-green-300' : 'bg-white/60'}
+          "
+                        on:click={() => selectChat(chat.id)}
+                >
+                    <div class="flex items-center gap-2">
+                        <span class="h-2 w-2 rounded-full {chat.id === currentChat?.id ? 'bg-green-600' : 'bg-green-300'}"></span>
+                        <span class="truncate font-medium">
+              {chat.title || `Чат ${chat.id}`}
+            </span>
+                    </div>
 
-    <div class="flex-1 flex flex-col bg-white/70 p-4 rounded-2xl shadow">
+                    <div class="mt-0.5 text-xs text-gray-500 truncate">
+                        {chat.last_message?.content || '—'}
+                    </div>
+                </button>
+            {/each}
+        </div>
+    </aside>
+
+    <!-- Chat -->
+    <section class="flex-1 min-w-0 flex flex-col bg-white/70 p-4 rounded-2xl shadow">
         {#if currentChat}
-            <div class="flex-1 overflow-y-auto space-y-2">
+            <div class="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1">
                 {#each messages as m}
-                    <ChatBubble {m}/>
+                    <ChatBubble {m} />
                 {/each}
             </div>
 
-            <div class="mt-4 flex gap-2">
-                <input bind:value={input}
-                       placeholder="Скажи что-то коту..."
-                       class="flex-1 p-3 rounded-xl bg-white shadow focus:outline-none focus:ring-2 focus:accent-green-100"
-                       on:keydown={(e)=> e.key === 'Enter' && sendMessage()} />
-                <button class="bg-lime-600 hover:bg-green-600 text-white px-4 py-3 rounded-xl transition transform hover:scale-105"
-                        on:click={sendMessage}>
+            <div class="mt-3 flex gap-2">
+                <input
+                        bind:value={input}
+                        placeholder="Скажи что-то коту..."
+                        class="flex-1 min-w-0 p-3 rounded-xl bg-white shadow focus:outline-none focus:ring-2 focus:ring-green-300"
+                        on:keydown={(e)=> e.key === 'Enter' && sendMessage()}
+                />
+                <button
+                        class="shrink-0 bg-lime-600 hover:bg-green-600 text-white px-4 py-3 rounded-xl transition transform hover:scale-105"
+                        on:click={sendMessage}
+                >
                     Отправить
                 </button>
             </div>
@@ -177,5 +205,5 @@
                 Выберите чат или создайте новый
             </div>
         {/if}
-    </div>
+    </section>
 </div>
