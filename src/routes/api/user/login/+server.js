@@ -17,8 +17,8 @@ export async function POST({ request, cookies }) {
         cookies.set('auth_token', token, {
             path: '/',
             httpOnly: true,
-            sameSite: 'strict',
-            secure: false, // true если https
+            sameSite: 'lax',
+            secure: true, // true если https
             maxAge: 60 * 60 * 24 * 7
         });
         return json({ success: true });
