@@ -6,7 +6,7 @@ export async function POST({ request }) {
     const { login, password } = body;
 
     try {
-        const res = await fetch(`http://backend:8080/user/registration`, {
+        const res = await fetch(`http://backend/user/registration`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ login, password })
